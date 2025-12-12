@@ -1,0 +1,33 @@
+{
+  "name": "@openlabels/oli-hardhat",
+  "version": "0.1.0",
+  "description": "Hardhat plugin to work with OLI Label Pool and Trust attestations (Base and Arbitrum EAS).",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint . --ext .ts",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "hardhat": "^3.0.0"
+  },
+  "dependencies": {
+    "@ethereum-attestation-service/eas-sdk": "^1.6.0",
+    "axios": "^1.6.8",
+    "ethers": "^6.12.0",
+    "js-yaml": "^4.1.0",
+    "pino": "^8.21.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.11.0",
+    "hardhat": "^3.0.17",
+    "typescript": "^5.4.0"
+  }
+}
