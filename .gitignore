@@ -17,3 +17,8 @@ typechain-types
 .env
 .env.*
 .DS_Store
+
+oli-python/
+oli-sdk/
+chainlink-eth-datafeeds-001.csv
+workshop-oli-1h/

@@ -7,7 +7,7 @@ const BASE_PRESET: NetworkPreset = {
   name: "Base",
   rpcUrl: "https://mainnet.base.org",
   easAddress: "0x4200000000000000000000000000000000000021",
-  labelPoolSchema: "0xb763e62d940bed6f527dd82418e146a904e62a297b8fa765c9b3e1f0bc6fdd68",
+  labelPoolSchema: "0xcff83309b59685fdae9dad7c63d969150676d51d8eeda66799d1c4898b84556a",
   labelTrustSchema: "0x6d780a85bfad501090cd82868a0c773c09beafda609d54888a65c106898c363d"
 };
 
@@ -19,7 +19,7 @@ const ARBITRUM_PRESET: NetworkPreset = {
   rpcUrl: "https://arb1.arbitrum.io/rpc",
   // Arbitrum One EAS contract (from provided frontend config).
   easAddress: "0xbD75f629A22Dc1ceD33dDA0b68c546A1c035c458",
-  labelPoolSchema: "0xb763e62d940bed6f527dd82418e146a904e62a297b8fa765c9b3e1f0bc6fdd68",
+  labelPoolSchema: "0xcff83309b59685fdae9dad7c63d969150676d51d8eeda66799d1c4898b84556a",
   labelTrustSchema: "0x6d780a85bfad501090cd82868a0c773c09beafda609d54888a65c106898c363d"
 };
 
@@ -37,5 +37,8 @@ export const DEFAULT_VALUESET_URLS = {
 };
 
 export const DEFAULT_API_URL = "https://api.openlabelsinitiative.org";
+
+export const HARDHAT_ATTESTATION_RECIPIENT =
+  "0x0000000000000000000000000000000000000003";
 
 export const CACHE_FILE = ".oli-cache.json";

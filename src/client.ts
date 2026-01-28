@@ -11,9 +11,11 @@ import {
 } from "ethers";
 import { randomBytes } from "crypto";
 import { buildOffchainTypedData, encodeLabelData, encodeTrustListData } from "./encoding.js";
+import { buildCaip10, isCaip10, parseCaip10 } from "./caip.js";
 import { loadDefinitions } from "./definitions.js";
 import { OliHttpClient } from "./http.js";
 import { buildLogger } from "./logger.js";
+import { HARDHAT_ATTESTATION_RECIPIENT } from "./constants.js";
 import {
   LabelPayload,
   LabelPostResponse,
@@ -23,12 +25,11 @@ import {
   RevocationOptions
 } from "./types.js";
 import {
-  validateAddress,
-  validateCaip2,
   validateLabel,
+  validateCaip2,
   validateNetworkConfig,
   validateRefUid,
-  validateTags,
+  validateAddressForChain,
   validateTrustList
 } from "./validation.js";
 import axios, { AxiosError } from "axios";
@@ -83,16 +84,70 @@ export class OliClient {
     return this.signer;
   }
 
+  private resolveLabelInput(payload: LabelPayload): LabelPayload {
+    let address = payload.address;
+    let chainId = payload.chainId;
+    const chainIdPlaceholder =
+      !chainId || chainId === "auto" || chainId === "-" || chainId === "_";
+
+    if (isCaip10(address)) {
+      const parsed = parseCaip10(address);
+      if (!chainIdPlaceholder && chainId && chainId !== parsed.chainId) {
+        throw new Error(
+          `Conflicting chainId inputs. Provided ${chainId} but CAIP-10 uses ${parsed.chainId}.`
+        );
+      }
+      chainId = parsed.chainId;
+      address = parsed.address;
+    } else if (chainIdPlaceholder) {
+      throw new Error("chainId is required unless the address is provided in CAIP-10 format.");
+    }
+
+    return { ...payload, address, chainId: chainId as string };
+  }
+
+  private resolveReadAddress(addressInput: string, params: Record<string, any>) {
+    let address = addressInput;
+    let chainId = params.chain_id || params.chainId;
+    const chainIdPlaceholder =
+      !chainId || chainId === "auto" || chainId === "-" || chainId === "_";
+
+    if (chainIdPlaceholder) {
+      chainId = undefined;
+    }
+
+    if (isCaip10(addressInput)) {
+      const parsed = parseCaip10(addressInput);
+      if (chainId && chainId !== parsed.chainId) {
+        throw new Error(
+          `Conflicting chainId inputs. Provided ${chainId} but CAIP-10 uses ${parsed.chainId}.`
+        );
+      }
+      chainId = parsed.chainId;
+      address = parsed.address;
+    }
+
+    if (chainId) {
+      validateCaip2(chainId);
+      address = validateAddressForChain(address, chainId);
+      return { address, chainId };
+    }
+
+    address = validateAddressForChain(address, "eip155:any");
+    return { address, chainId: undefined };
+  }
+
   async validateLabel(payload: LabelPayload) {
-    const { normalizedTags, refUid } = validateLabel(
-      payload.address,
-      payload.chainId,
+    const resolved = this.resolveLabelInput(payload);
+    const { normalizedTags, refUid, address, chainId } = validateLabel(
+      resolved.address,
+      resolved.chainId,
       payload.tags,
       payload.refUid,
       this.tagDefinitions,
       this.valueSets
     );
-    return { ...payload, tags: normalizedTags, refUid };
+    return { ...resolved, address, chainId, tags: normalizedTags, refUid };
   }
 
   async validateTrustList(payload: TrustListPayload) {
@@ -131,9 +186,13 @@ export class OliClient {
   ): Promise<LabelPostResponse> {
     await this.init();
     const normalized = labels.map((l: any) => {
+      const addressInput = l.address || l.caip10 || l.caip_10;
+      if (!addressInput) {
+        throw new Error("Each label must include an address or caip10 field.");
+      }
       return {
-        address: l.address,
-        chainId: l.chainId || l.chain_id,
+        address: addressInput,
+        chainId: l.chainId || l.chain_id || l.chainID,
         tags: l.tags,
         refUid: l.refUid || l.refuid || l.ref_uid
       } as LabelPayload;
@@ -192,11 +251,11 @@ export class OliClient {
     const signer = this.requireSigner();
     const eas = new EAS(this.config.easAddress);
     eas.connect(signer as any);
-    const encodedData = encodeLabelData(payload.chainId, payload.tags);
+    const encodedData = encodeLabelData(buildCaip10(payload.chainId, payload.address), payload.tags);
     const tx = await eas.attest({
       schema: this.config.labelPoolSchema,
       data: {
-        recipient: payload.address,
+        recipient: HARDHAT_ATTESTATION_RECIPIENT,
         expirationTime: 0n,
         revocable: true,
         refUID: validateRefUid(payload.refUid),
@@ -219,11 +278,11 @@ export class OliClient {
       {
         schema: this.config.labelPoolSchema,
         data: labels.map((label) => ({
-          recipient: label.address,
+          recipient: HARDHAT_ATTESTATION_RECIPIENT,
           expirationTime: 0n,
           revocable: true,
           refUID: validateRefUid(label.refUid),
-          data: encodeLabelData(label.chainId, label.tags),
+          data: encodeLabelData(buildCaip10(label.chainId, label.address), label.tags),
           value: 0n
         }))
       }
@@ -248,7 +307,7 @@ export class OliClient {
     const tx = await eas.attest({
       schema: this.config.labelTrustSchema,
       data: {
-        recipient: "0x0000000000000000000000000000000000000000",
+        recipient: HARDHAT_ATTESTATION_RECIPIENT,
         expirationTime: 0n,
         revocable: true,
         refUID: "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -268,10 +327,10 @@ export class OliClient {
     const typed = buildOffchainTypedData(
       {
         schema: this.config.labelPoolSchema,
-        recipient: payload.address,
+        recipient: HARDHAT_ATTESTATION_RECIPIENT,
         time: now,
         refUID: validateRefUid(payload.refUid),
-        data: encodeLabelData(payload.chainId, payload.tags),
+        data: encodeLabelData(buildCaip10(payload.chainId, payload.address), payload.tags),
         expirationTime: 0,
         revocable: true,
         salt
@@ -334,10 +393,10 @@ export class OliClient {
       const typed = buildOffchainTypedData(
         {
           schema: this.config.labelPoolSchema,
-          recipient: payload.address,
+          recipient: HARDHAT_ATTESTATION_RECIPIENT,
           time: now,
           refUID: validateRefUid(payload.refUid),
-          data: encodeLabelData(payload.chainId, payload.tags),
+          data: encodeLabelData(buildCaip10(payload.chainId, payload.address), payload.tags),
           expirationTime: 0,
           revocable: true,
           salt
@@ -398,7 +457,7 @@ export class OliClient {
     const typed = buildOffchainTypedData(
       {
         schema: this.config.labelTrustSchema,
-        recipient: "0x0000000000000000000000000000000000000000",
+        recipient: HARDHAT_ATTESTATION_RECIPIENT,
         time: now,
         refUID: "0x0000000000000000000000000000000000000000000000000000000000000000",
         data: encodeTrustListData(payload.ownerName, payload.attesters, payload.attestations),
@@ -485,20 +544,32 @@ export class OliClient {
 
   async getLabels(address: string, params: Record<string, any> = {}) {
     await this.init();
-    validateAddress(address);
-    return (await this.http.getLabels({ address, ...params })).data;
+    const resolved = this.resolveReadAddress(address, params);
+    const chainIdParam = resolved.chainId ?? params.chain_id ?? params.chainId;
+    return (
+      await this.http.getLabels({
+        address: resolved.address,
+        ...params,
+        chain_id: chainIdParam
+      })
+    ).data;
   }
 
   async getLabelsBulk(addresses: string[], params: Record<string, any> = {}) {
     await this.init();
-    addresses.forEach(validateAddress);
+    addresses.forEach((address) => validateAddressForChain(address, "eip155:any"));
     return (await this.http.getLabelsBulk({ addresses, ...params })).data;
   }
 
   async getTrustedLabels(address: string, params: Record<string, any> = {}) {
     await this.init();
-    validateAddress(address);
-    const resp = await this.http.getLabels({ address, ...params });
+    const resolved = this.resolveReadAddress(address, params);
+    const chainIdParam = resolved.chainId ?? params.chain_id ?? params.chainId;
+    const resp = await this.http.getLabels({
+      address: resolved.address,
+      ...params,
+      chain_id: chainIdParam
+    });
     return resp.data;
   }
 

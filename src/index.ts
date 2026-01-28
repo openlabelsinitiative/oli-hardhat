@@ -30,6 +30,36 @@ const extractTagsInput = (raw: any) => {
   return { tags: raw, refUid: undefined };
 };
 
+const looksLikeCaip2 = (value: string) => {
+  const idx = value.indexOf(":");
+  if (idx <= 0 || idx === value.length - 1 || value.indexOf(":", idx + 1) !== -1) {
+    return false;
+  }
+  const prefix = value.slice(0, idx + 1).toLowerCase();
+  if (prefix === "eip155:") {
+    const rest = value.slice(idx + 1);
+    return rest === "any" || /^[0-9]+$/.test(rest);
+  }
+  return true;
+};
+
+const resolveChainIdAndTags = (chainIdArg: string, tagsArg: string) => {
+  let chainId = chainIdArg;
+  let tags = tagsArg;
+  if (!tags) {
+    const candidate = chainIdArg;
+    const isPlaceholder = !candidate || candidate === "auto" || candidate === "-" || candidate === "_";
+    if (isPlaceholder || looksLikeCaip2(candidate)) {
+      throw new Error(
+        "Tags are required. If using CAIP-10, pass tags as the second argument and omit chainId."
+      );
+    }
+    tags = candidate;
+    chainId = "auto";
+  }
+  return { chainId, tags };
+};
+
 const asLazyAction = (fn: any) => async () => ({ default: fn });
 
 const getClient = async (hre: any) => {
@@ -51,20 +81,23 @@ const validateTask = task("oli:validate-label", "Validate a label against OLI sc
   })
   .addPositionalArgument({
     name: "chainId",
-    description: "Chain ID in CAIP-2 format (e.g., eip155:8453)"
+    description: "Chain ID in CAIP-2 format (e.g., eip155:8453). Defaults to auto for CAIP-10 input",
+    defaultValue: "auto"
   })
   .addPositionalArgument({
     name: "tags",
-    description: "JSON string or path to JSON/YAML with tags"
+    description: "JSON string or path to JSON/YAML with tags",
+    defaultValue: ""
   })
   .setAction(
     asLazyAction(async (args: any, hre: any) => {
       const client = await getClient(hre);
-      const parsed = parseMaybeJsonFile(args.tags);
+      const { chainId, tags: tagsInput } = resolveChainIdAndTags(args.chainId, args.tags);
+      const parsed = parseMaybeJsonFile(tagsInput);
       const { tags } = extractTagsInput(parsed);
       const validated = await client.validateLabel({
         address: args.address,
-        chainId: args.chainId,
+        chainId,
         tags
       });
       console.log("Valid label ✅", validated);
@@ -78,11 +111,13 @@ const submitLabelTask = task("oli:submit-label", "Submit a single label")
   })
   .addPositionalArgument({
     name: "chainId",
-    description: "Chain ID in CAIP-2 format (e.g., eip155:8453)"
+    description: "Chain ID in CAIP-2 format (e.g., eip155:8453). Defaults to auto for CAIP-10 input",
+    defaultValue: "auto"
   })
   .addPositionalArgument({
     name: "tags",
-    description: "JSON string or path to JSON/YAML with tags"
+    description: "JSON string or path to JSON/YAML with tags",
+    defaultValue: ""
   })
   .addFlag({
     name: "onchain",
@@ -96,12 +131,13 @@ const submitLabelTask = task("oli:submit-label", "Submit a single label")
   .setAction(
     asLazyAction(async (args: any, hre: any) => {
       const client = await getClient(hre);
-      const parsed = parseMaybeJsonFile(args.tags);
+      const { chainId, tags: tagsInput } = resolveChainIdAndTags(args.chainId, args.tags);
+      const parsed = parseMaybeJsonFile(tagsInput);
       const { tags, refUid: refFromFile } = extractTagsInput(parsed);
       const response = await client.submitLabel(
         {
           address: args.address,
-          chainId: args.chainId,
+          chainId,
           tags,
           refUid: args.ref || refFromFile || undefined
         },
@@ -177,7 +213,7 @@ const revokeTask = task("oli:revoke", "Revoke an attestation by UID")
 const getLabelsTask = task("oli:get-labels", "Fetch labels for an address")
   .addPositionalArgument({
     name: "address",
-    description: "Address to fetch"
+    description: "Address to fetch (EVM or CAIP-10)"
   })
   .addOption({
     name: "chainId",

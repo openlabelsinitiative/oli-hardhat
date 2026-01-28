@@ -1,33 +1,43 @@
 import { getAddress } from "ethers";
 import { ResolvedConfig } from "./types.js";
 
-const ALLOWED_PREFIXES = ["eip155:", "solana:", "tron:", "stellar:", "bip122:", "SN_MAIN"];
-
 export const validateCaip2 = (chainId: string) => {
-  for (const prefix of ALLOWED_PREFIXES) {
-    if (chainId.startsWith(prefix)) {
-      if (prefix === "eip155:") {
-        const rest = chainId.slice(prefix.length);
-        if (rest === "any") return true;
-        if (/^[0-9]+$/.test(rest)) return true;
-        throw new Error(
-          `Invalid eip155 chain_id format: ${chainId}. Expected eip155:<number> or eip155:any`
-        );
-      }
-      return true;
-    }
+  const idx = chainId.indexOf(":");
+  if (idx <= 0 || idx === chainId.length - 1 || chainId.indexOf(":", idx + 1) !== -1) {
+    throw new Error(
+      `Unsupported chain ID format: ${chainId}. Must be CAIP-2 (e.g., eip155:8453 for Base).`
+    );
   }
-  throw new Error(
-    `Unsupported chain ID format: ${chainId}. Must be CAIP-2 (e.g., eip155:8453 for Base).`
-  );
+  const prefix = chainId.slice(0, idx + 1).toLowerCase();
+  if (prefix === "eip155:") {
+    const rest = chainId.slice(idx + 1);
+    if (rest === "any") return true;
+    if (/^[0-9]+$/.test(rest)) return true;
+    throw new Error(
+      `Invalid eip155 chain_id format: ${chainId}. Expected eip155:<number> or eip155:any`
+    );
+  }
+  return true;
 };
 
-export const validateAddress = (address: string) => {
-  try {
-    return getAddress(address);
-  } catch (err) {
-    throw new Error(`Address must be a valid EVM address: ${address}`);
+export const validateAddressForChain = (address: string, chainId: string) => {
+  const lower = chainId.toLowerCase();
+  if (lower.startsWith("eip155:")) {
+    try {
+      return getAddress(address);
+    } catch {
+      throw new Error(`Address must be a valid EVM address: ${address}`);
+    }
   }
+  if (!address || address.length > 66) {
+    throw new Error(
+      `Address to be labelled exceeds maximum length of 66 characters or is empty: ${address}`
+    );
+  }
+  if (address.includes(":")) {
+    throw new Error(`Address to be labelled must not contain ':' character: ${address}`);
+  }
+  return address;
 };
 
 export const validateRefUid = (refUid?: string) => {
@@ -135,11 +145,11 @@ export const validateLabel = (
   tagDefinitions: Record<string, any>,
   valueSets: Record<string, any>
 ) => {
-  validateAddress(address);
   validateCaip2(chainId);
+  const normalizedAddress = validateAddressForChain(address, chainId);
   const normalizedTags = validateTags(tags, tagDefinitions, valueSets);
   const ref = validateRefUid(refUid);
-  return { normalizedTags, refUid: ref };
+  return { normalizedTags, refUid: ref, address: normalizedAddress, chainId };
 };
 
 export const validateTrustList = (

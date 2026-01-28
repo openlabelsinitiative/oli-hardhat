@@ -1,0 +1,77 @@
+0 verbose cli /Users/ahoura/.nvm/versions/node/v22.11.0/bin/node /Users/ahoura/.nvm/versions/node/v22.11.0/bin/npm
+1 info using npm@10.9.0
+2 info using node@v22.11.0
+3 silly config load:file:/Users/ahoura/.nvm/versions/node/v22.11.0/lib/node_modules/npm/npmrc
+4 silly config load:file:/Users/ahoura/Documents/dev-projects/oli-hardhat/.npmrc
+5 silly config load:file:/Users/ahoura/.npmrc
+6 silly config load:file:/Users/ahoura/.nvm/versions/node/v22.11.0/etc/npmrc
+7 verbose title npm publish
+8 verbose argv "publish" "--access" "public"
+9 verbose logfile logs-max:10 dir:/Users/ahoura/Documents/dev-projects/oli-hardhat/.npm-cache/_logs/2025-12-12T16_33_41_775Z-
+10 verbose logfile /Users/ahoura/Documents/dev-projects/oli-hardhat/.npm-cache/_logs/2025-12-12T16_33_41_775Z-debug-0.log
+11 silly logfile done cleaning log files
+12 verbose publish [ '.' ]
+13 http fetch GET 200 https://registry.npmjs.org/npm 186ms
+14 silly packumentCache heap:4345298944 maxSize:1086324736 maxEntrySize:543162368
+15 verbose shrinkwrap failed to load node_modules/.package-lock.json out of date, updated: node_modules
+16 notice
+17 notice 📦  @openlabels/oli-hardhat@0.1.0
+18 notice Tarball Contents
+19 notice 4.3kB README.md
+19 notice 1.9kB dist/client.d.ts
+19 notice 15.9kB dist/client.js
+19 notice 150B dist/config.d.ts
+19 notice 1.3kB dist/config.js
+19 notice 518B dist/constants.d.ts
+19 notice 1.6kB dist/constants.js
+19 notice 220B dist/definitions.d.ts
+19 notice 3.0kB dist/definitions.js
+19 notice 1.2kB dist/encoding.d.ts
+19 notice 2.4kB dist/encoding.js
+19 notice 1.1kB dist/http.d.ts
+19 notice 1.5kB dist/http.js
+19 notice 56B dist/index.d.ts
+19 notice 7.1kB dist/index.js
+19 notice 112B dist/logger.d.ts
+19 notice 310B dist/logger.js
+19 notice 11B dist/tasks/oli.d.ts
+19 notice 6.0kB dist/tasks/oli.js
+19 notice 185B dist/type-extensions.d.ts
+19 notice 111B dist/type-extensions.js
+19 notice 2.1kB dist/types.d.ts
+19 notice 11B dist/types.js
+19 notice 1.1kB dist/validation.d.ts
+19 notice 5.3kB dist/validation.js
+19 notice 800B package.json
+20 notice Tarball Details
+21 notice name: @openlabels/oli-hardhat
+22 notice version: 0.1.0
+23 notice filename: openlabels-oli-hardhat-0.1.0.tgz
+24 notice package size: 12.8 kB
+25 notice unpacked size: 58.4 kB
+26 notice shasum: 903be346825aa61920015dcbf4852f0144b00cac
+27 notice integrity: sha512-W/inGAsOPP3Ja[...]J5GDRSKQ10eAw==
+28 notice total files: 26
+29 notice
+30 notice Publishing to https://registry.npmjs.org/ with tag latest and public access
+31 http fetch PUT 401 https://registry.npmjs.org/@openlabels%2foli-hardhat 409ms
+32 verbose web auth opening url pair
+33 http fetch GET 202 https://registry.npmjs.org/-/v1/done?authId=*** 235ms
+34 http fetch GET 202 https://registry.npmjs.org/-/v1/done?authId=*** 225ms
+35 http fetch GET 202 https://registry.npmjs.org/-/v1/done?authId=*** 229ms
+36 http fetch GET 202 https://registry.npmjs.org/-/v1/done?authId=*** 231ms
+37 http fetch GET 202 https://registry.npmjs.org/-/v1/done?authId=*** 304ms
+38 http fetch GET 200 https://registry.npmjs.org/-/v1/done?authId=*** 244ms
+39 verbose web auth done-check finished
+40 http fetch PUT 200 https://registry.npmjs.org/@openlabels%2foli-hardhat 1977ms
+41 verbose cwd /Users/ahoura/Documents/dev-projects/oli-hardhat
+42 verbose os Darwin 25.1.0
+43 verbose node v22.11.0
+44 verbose npm  v10.9.0
+45 notice
+45 notice New [31mmajor[39m version of npm available! [31m10.9.0[39m -> [34m11.7.0[39m
+45 notice Changelog: [34mhttps://github.com/npm/cli/releases/tag/v11.7.0[39m
+45 notice To update run: [4mnpm install -g npm@11.7.0[24m
+45 notice  { force: true, [Symbol(proc-log.meta)]: true }
+46 verbose exit 0
+47 info ok

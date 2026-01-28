@@ -35,7 +35,7 @@ export default defineConfig({
     easAddress: process.env.OLI_EAS_ADDRESS,
     labelPoolSchema:
       process.env.OLI_LABEL_POOL_SCHEMA ||
-      "0xb763e62d940bed6f527dd82418e146a904e62a297b8fa765c9b3e1f0bc6fdd68",
+      "0xcff83309b59685fdae9dad7c63d969150676d51d8eeda66799d1c4898b84556a",
     labelTrustSchema:
       process.env.OLI_LABEL_TRUST_SCHEMA ||
       "0x6d780a85bfad501090cd82868a0c773c09beafda609d54888a65c106898c363d",
@@ -95,12 +95,15 @@ npx hardhat oli:attester-analytics [--chainId <chainId>] [--limit N]
 - Single submit can take:
   - Tags as the third argument (JSON string/file), or
   - An envelope file `{ address, chain_id, tags, refUid }` (plugin unwraps `tags` and uses `refUid` if present).
+- CAIP-10 input is supported by passing the CAIP-10 string as `address`; `chainId` is optional and defaults to `auto`.
 - Bulk: array of envelopes `{ address, chain_id/chainId, tags, ref_uid/refUid? }`.
 - `refUid` is optional (defaults to zero).
 
 ## Notes
 
 - The attestation is signed against the configured EAS (Base/Arbitrum). The `chainId` argument you pass describes the labeled contract’s chain (CAIP-2), not the EAS network.
+- Label data is encoded as CAIP-10 (`<namespace>:<reference>:<address>`). You can pass a CAIP-10 address as the first argument and omit `chainId` (it defaults to `auto`).
+- Hardhat-originated attestations use recipient `0x0000000000000000000000000000000000000003` as a marker.
 - Validators match the OLI Python SDK: CAIP-2 check, tag normalization, enum/value-set enforcement when tag definitions are fetched.
 - Errors surface HTTP status/body from the API (e.g., validation issues) or DNS/connectivity errors if unreachable.
 
@@ -114,6 +117,11 @@ npx hardhat oli:validate-label 0xE592427A0AEce92De3Edee1F18E0157C05861564 eip155
 Submit off-chain:
 ```bash
 npx hardhat oli:submit-label 0xE592427A0AEce92De3Edee1F18E0157C05861564 eip155:42161 '{"contract_name":"OnChainGM V2","owner_project":"onchaingm","usage_category":"community"}'
+```
+
+Submit off-chain with CAIP-10:
+```bash
+npx hardhat oli:submit-label eip155:42161:0xE592427A0AEce92De3Edee1F18E0157C05861564 '{"contract_name":"OnChainGM V2","owner_project":"onchaingm","usage_category":"community"}'
 ```
 
 Bulk:

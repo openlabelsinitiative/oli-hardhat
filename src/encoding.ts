@@ -2,9 +2,9 @@ import { AbiCoder, TypedDataEncoder, getBytes, BytesLike, keccak256 } from "ethe
 
 const coder = new AbiCoder();
 
-export const encodeLabelData = (chainId: string, tagsJson: Record<string, unknown>): string => {
+export const encodeLabelData = (caip10: string, tagsJson: Record<string, unknown>): string => {
   const json = typeof tagsJson === "string" ? tagsJson : JSON.stringify(tagsJson);
-  return coder.encode(["string", "string"], [chainId, json]);
+  return coder.encode(["string", "string"], [caip10, json]);
 };
 
 export const encodeTrustListData = (

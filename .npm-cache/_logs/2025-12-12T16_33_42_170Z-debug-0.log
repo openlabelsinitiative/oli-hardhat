@@ -1,0 +1,18 @@
+0 verbose cli /Users/ahoura/.nvm/versions/node/v22.11.0/bin/node /Users/ahoura/.nvm/versions/node/v22.11.0/bin/npm
+1 info using npm@10.9.0
+2 info using node@v22.11.0
+3 silly config load:file:/Users/ahoura/.nvm/versions/node/v22.11.0/lib/node_modules/npm/npmrc
+4 silly config load:file:/Users/ahoura/Documents/dev-projects/oli-hardhat/.npmrc
+5 silly config load:file:/Users/ahoura/.npmrc
+6 silly config load:file:/Users/ahoura/.nvm/versions/node/v22.11.0/etc/npmrc
+7 verbose title npm run build
+8 verbose argv "run" "build"
+9 verbose logfile logs-max:10 dir:/Users/ahoura/Documents/dev-projects/oli-hardhat/.npm-cache/_logs/2025-12-12T16_33_42_170Z-
+10 verbose logfile /Users/ahoura/Documents/dev-projects/oli-hardhat/.npm-cache/_logs/2025-12-12T16_33_42_170Z-debug-0.log
+11 silly logfile done cleaning log files
+12 verbose cwd /Users/ahoura/Documents/dev-projects/oli-hardhat
+13 verbose os Darwin 25.1.0
+14 verbose node v22.11.0
+15 verbose npm  v10.9.0
+16 verbose exit 0
+17 info ok
